@@ -1,6 +1,7 @@
 import Layout from "@/components/Layout";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import { useNavigate } from "react-router-dom";
 type Props = {};
 
 interface PassportFormValues {
@@ -31,6 +32,7 @@ const validationSchema = Yup.object({
     .required("Number of blank pages is required"),
 });
 const PassportForm = (props: Props) => {
+  const navigate = useNavigate();
   const formik = useFormik<PassportFormValues>({
     initialValues: {
       passportNumber: "",
@@ -150,6 +152,12 @@ const PassportForm = (props: Props) => {
 
         <button type="submit" className="bg-blue-500 text-white p-2 rounded">
           Save & Next
+        </button>
+        <button
+          onClick={() => navigate(-1)}
+          className="bg-zinc-500 mx-4 text-white p-2 rounded"
+        >
+          Back
         </button>
       </form>
     </Layout>

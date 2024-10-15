@@ -2,7 +2,8 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import React, { useState } from "react";
 import Layout from "@/components/Layout";
-
+import { useNavigate } from "react-router-dom";
+import { personal_info } from "@/service/ApiService";
 // Define the form values interface
 interface FormValues {
   surname: string;
@@ -22,7 +23,8 @@ interface FormValues {
 const PersonalInfoForms: React.FC = () => {
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null); // Store the preview URL
-
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
   // Define the form validation schema using Yup
   const validationSchema = Yup.object({
     surname: Yup.string()
@@ -73,16 +75,35 @@ const PersonalInfoForms: React.FC = () => {
       photo: null, // Initialize photo as null
     },
     validationSchema,
-    onSubmit: (values) => {
-      const formData = new FormData();
-      if (photo) {
-        formData.append("photo", photo); // Append the photo to FormData
-      }
-      formData.append("values", JSON.stringify(values)); // Append form values
+    onSubmit: async (values) => {
+      setIsLoading(true); // Start loading
+      const body = {
+        surname: values.surname,
+        middle_name: values.middleName, // Adjusted to match form values
+        first_name: values.firstName, // Adjusted to match form values
+        nationality: values.nationality,
+        date_of_birth: values.dateOfBirth,
+        place_of_birth: values.placeOfBirth,
+        post_applied_for: values.postAppliedFor,
+        willing_to_accept_lower_rank: values.willingToAcceptLowerRank,
+        available_from_date: values.availableFromDate,
+        education_qualification: values.educationQualification,
+        blood_group: values.bloodGroup,
+        photo: photoPreview ? photoPreview : "",// Use photo name or leave empty if not uploaded
+      };
 
-      console.log("Form data", values);
-      console.log("Photo:", photo);
-      // You can now send formData to your API or handle it as required
+      try {
+        const response = await personal_info(body);
+        if (response) {
+          console.log("API Response:", response);
+          navigate("/passport-form");
+        }
+      } catch (error) {
+        console.error("Error submitting form:", error);
+        // Handle error (e.g., show a notification)
+      } finally {
+        setIsLoading(false); // End loading
+      }
     },
   });
 
@@ -399,9 +420,12 @@ const PersonalInfoForms: React.FC = () => {
 
           <button
             type="submit"
-            className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+            disabled={isLoading}
+            className={`bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 ${
+              isLoading ? "opacity-50 cursor-not-allowed" : ""
+            }`}
           >
-            Save & Next
+            {isLoading ? "Submitting..." : "Save & Next: Passport Form"}
           </button>
         </form>
       </div>
